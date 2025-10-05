@@ -1,0 +1,180 @@
+# AI Agent-as-Coder: Bank Statement Parser
+
+An autonomous AI agent that uses LLMs to generate and self-fix custom bank statement parsers.
+
+## 🚀 Quick Start (5 Steps)
+
+### 1. Install Dependencies
+```bash
+# For PDF support
+pip install pandas pdfplumber openpyxl google-generativeai
+
+# OR for Groq
+pip install pandas pdfplumber openpyxl groq
+```
+
+### 2. Set API Key
+Get free API credits from:
+- **Google Gemini**: https://aistudio.google.com/apikey
+- **Groq**: https://console.groq.com/keys
+
+```bash
+# For Gemini (recommended)
+export GEMINI_API_KEY="your-key-here"
+
+# OR for Groq
+export GROQ_API_KEY="your-key-here"
+```
+
+### 3. Prepare Files
+Place these files in your repo root:
+- Input file: `icici sample.pdf` OR `statement.xlsx` OR `data.csv`
+- Expected output: `result.csv` (defines the schema)
+
+### 4. Create Parser Directory
+```bash
+mkdir -p custom_parsers
+touch custom_parsers/__init__.py
+```
+
+### 5. Run the Agent
+```bash
+# For PDF input
+python agent.py --bank icici --input "icici sample.pdf" --expected result.csv
+
+# For Excel input
+python agent.py --bank sbi --input "sbi_statement.xlsx" --expected result.csv
+
+# For CSV input
+python agent.py --bank hdfc --input "hdfc_data.csv" --expected result.csv
+```
+
+## 📊 Agent Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   AI Agent Loop                      │
+└─────────────────────────────────────────────────────┘
+                          │
+                          ▼
+        ┌─────────────────────────────────┐
+        │  1. ANALYZE                     │
+        │  • Read expected CSV schema     │
+        │  • Extract PDF sample text      │
+        └─────────────┬───────────────────┘
+                      │
+                      ▼
+        ┌─────────────────────────────────┐
+        │  2. PLAN & GENERATE             │
+        │  • Build LLM prompt with:       │
+        │    - Schema requirements        │
+        │    - PDF sample content         │
+        │  • LLM generates parser code    │
+        └─────────────┬───────────────────┘
+                      │
+                      ▼
+        ┌─────────────────────────────────┐
+        │  3. TEST                        │
+        │  • Import generated parser      │
+        │  • Run parse(pdf_path)          │
+        │  • Compare with expected CSV    │
+        └─────────────┬───────────────────┘
+                      │
+                ┌─────┴─────┐
+                │           │
+            Success?    Failed?
+                │           │
+                ▼           ▼
+        ┌───────────┐  ┌──────────────────┐
+        │ ✅ DONE   │  │ 4. SELF-FIX      │
+        └───────────┘  │ • Send error to  │
+                       │   LLM with code  │
+                       │ • LLM fixes code │
+                       └────────┬─────────┘
+                                │
+                          (max 3 attempts)
+                                │
+                                ▼
+                        Back to TEST step
+```
+
+## 🎯 How It Works
+
+The agent follows an autonomous loop:
+
+1. **Analyze**: Reads the expected CSV schema and extracts sample content from the PDF
+2. **Plan**: Constructs an intelligent prompt for the LLM with requirements and examples
+3. **Generate**: LLM writes the complete parser code based on the prompt
+4. **Test**: Executes the parser and compares output with expected CSV
+5. **Self-Fix**: If tests fail, sends error message to LLM and gets fixed code (up to 3 attempts)
+
+## 🔧 For Different Banks
+
+To use with a different bank (e.g., SBI):
+
+```bash
+python agent.py --bank sbi --pdf "sbi_statement.pdf" --expected sbi_result.csv
+```
+
+The agent will automatically:
+- Adapt to the new PDF format
+- Generate appropriate parsing logic
+- Handle bank-specific quirks
+
+## 📁 Project Structure
+
+```
+.
+├── agent.py                    # Main AI agent
+├── custom_parsers/
+│   ├── __init__.py
+│   └── icici_parser.py        # Auto-generated by agent
+├── icici sample.pdf           # Input statement
+└── result.csv                 # Expected output
+```
+
+## 🧠 Key Features
+
+- **Autonomous**: No manual intervention needed after starting
+- **Self-Healing**: Automatically fixes errors using LLM feedback
+- **Adaptive**: Works with any bank's PDF format
+- **Memory**: Maintains conversation history for context
+- **Multi-Provider**: Supports both Gemini and Groq APIs
+
+## ⚙️ Configuration
+
+### Environment Variables
+- `GEMINI_API_KEY` - Google Gemini API key (preferred)
+- `GROQ_API_KEY` - Groq API key (alternative)
+
+### Command Line Arguments
+- `--bank` - Bank identifier (default: icici)
+- `--pdf` - Input PDF path (default: "icici sample.pdf")
+- `--expected` - Expected CSV path (default: result.csv)
+
+## 🐛 Troubleshooting
+
+**No LLM provider available**
+```bash
+# Install required package
+pip install google-generativeai
+
+# Set API key
+export GEMINI_API_KEY="your-key"
+```
+
+**PDF reading errors**
+```bash
+pip install pdfplumber
+```
+
+**Import errors for generated parser**
+- Ensure `custom_parsers/__init__.py` exists
+- Check that generated code has valid Python syntax
+
+## 📝 Notes
+
+- The agent attempts up to 3 self-fix iterations
+- Free API tiers should be sufficient for testing
+- Generated parsers are saved to `custom_parsers/` directory
+- Agent maintains history of all attempts for debugging
